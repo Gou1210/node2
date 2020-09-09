@@ -1,7 +1,11 @@
 const handleBlogRouter = require('./src/blog')
 const handleUserRouter = require('./src/user')
-
-
+let SESSION_DATA = {}
+const getCookieExpires=()=>{
+    const d = new Date()
+    d.setTime(d.getTime()+(24*60*60*1000*7))
+    return d.toGMTString()
+}
 
 const queryString = require('querystring')
 const getPostData = (req) =>{
@@ -53,13 +57,30 @@ cookieStr.split(';').forEach(item=>{
     const val = arr[1].trim()
     req.cookie[key] = val
 })
+// 解析session
+let needSessionCookie = false
+let userId = req.cookie.userId
+if(userId){
+    if(!SESSION_DATA[userId]){
+        SESSION_DATA[userId] = {}
+    }
+    req.session = SESSION_DATA[userId]
+}else{
+    needSessionCookie = true
+    userId = `${Date.now()}_${Math.random()}`
+    SESSION_DATA[userId] = {}
+}
+
+    req.session = SESSION_DATA[userId]
 getPostData(req).then(postData => {
     req.body = postData
     // 博客接口处理
 const blogResult = handleBlogRouter(req,res) 
 if(blogResult){
     blogResult.then(blogData=>{
-
+        if(needSessionCookie){
+            res.setHeader('Set-Cookie',`userId=${userId}; path=/; httpOnly; expires=${getCookieExpires()}`)
+        }
         res.end(
             JSON.stringify(blogData)
         )
@@ -70,7 +91,7 @@ if(blogResult){
 const userResult = handleUserRouter(req,res) 
 if(userResult){
     userResult.then(userData=>{
-
+        res.setHeader('Set-Cookie',`userId=${userId}; path=/; httpOnly; expires=${getCookieExpires()}`)
         res.end(
             JSON.stringify(userData)
         )

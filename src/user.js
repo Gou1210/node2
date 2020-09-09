@@ -14,9 +14,10 @@ const handleUserRouter = (req,res) => {
         const result = login(username,password)
         return result.then(data=>{
             if(data.username){
+                req.session.username = data.username
+                req.session.realname = data.realname
                 // 如果通过登录检查,则加入cookie
                 res.setHeader('Set-Cookie',`username=${data.username}; path=/; httpOnly; expires=${getCookieExpires()}`)
-                // res.setHeader('Set-Cookie',`username=${data.username}; path=/; httpOnly; expires=${getCookieExpires()}`)
                 
                 return  new SuccessModel()
               }
@@ -27,7 +28,7 @@ const handleUserRouter = (req,res) => {
 
     if(method=='GET'&&req.path=='/test'){
 
-        if(req.cookie.username){
+        if(req.session.username){
             return Promise.resolve(
                 new SuccessModel('登录')
             )      
