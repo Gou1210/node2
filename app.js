@@ -1,6 +1,7 @@
 const handleBlogRouter = require('./src/blog')
 const handleUserRouter = require('./src/user')
-let SESSION_DATA = {}
+const {set,get} = require('./src/db/redis')
+// let SESSION_DATA = {} 
 const getCookieExpires=()=>{
     const d = new Date()
     d.setTime(d.getTime()+(24*60*60*1000*7))
@@ -58,21 +59,39 @@ cookieStr.split(';').forEach(item=>{
     req.cookie[key] = val
 })
 // 解析session
+
+// if(userId){
+//     if(!SESSION_DATA[userId]){
+//         SESSION_DATA[userId] = {}
+//     }
+//     req.session = SESSION_DATA[userId]
+// }else{
+//     needSessionCookie = true
+//     userId = `${Date.now()}_${Math.random()}`
+//     SESSION_DATA[userId] = {}
+// }
+// 解析redis
 let needSessionCookie = false
 let userId = req.cookie.userId
-if(userId){
-    if(!SESSION_DATA[userId]){
-        SESSION_DATA[userId] = {}
-    }
-    req.session = SESSION_DATA[userId]
-}else{
+if(!userId){
     needSessionCookie = true
     userId = `${Date.now()}_${Math.random()}`
-    SESSION_DATA[userId] = {}
+    
+    set(userId,{})
 }
+req.sessionId = userId
+get(userId).then(sessionData=>{
+    if(sessionData==null){
+        set(req.sessionId,{})
 
-    req.session = SESSION_DATA[userId]
-getPostData(req).then(postData => {
+        req.session = {}
+    }else {
+        // 设置 session
+        req.session = sessionData
+    }
+    return getPostData(req)
+})
+.then(postData => {
     req.body = postData
     // 博客接口处理
 const blogResult = handleBlogRouter(req,res) 
