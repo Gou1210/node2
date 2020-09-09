@@ -6,13 +6,13 @@ if (1 === 1) {
     // mysql
     MYSQL_CONF = {
         host: 'localhost',
-        user: 'root',
-        password: "123456",
+        user: 'gouwei',
+        password: "1234",
         port: '3306',
         database: 'myblog'
     }
         REDIS_CONF = {
-            port: 6379,
+            port: "6379",
             host: '127.0.0.1'
         }
 
@@ -23,13 +23,13 @@ if (env === 'production') {
     MYSQL_CONF = {
         host: 'localhost',
         user: 'root',
-        password: 'Mysql_2018',
+        password: '123456',
         port: '3306',
         database: 'myblog'
     }
 
     REDIS_CONF = {
-        port: 6379,
+        port: "6379",
         host: '127.0.0.1'
     }
 }
